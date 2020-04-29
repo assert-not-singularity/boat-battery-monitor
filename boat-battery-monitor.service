@@ -1,0 +1,17 @@
+[Unit]
+Description=Boat Battery Monitor
+AssertPathExists=/home/pi/boat-battery-monitor
+
+[Service]
+ExecStart=mono /home/pi/boat-battery-monitor/boat-battery-monitor.dll
+# Restart service only after failures, not after stopping it
+Restart=on-failure
+StandardError=inherit
+StandardOutput=inherit
+SyslogIdentifier=batmon
+# Time after SIGTERM is sent until process is finally killed with SIGKILL
+TimeoutStopSec=10
+User=pi
+
+[Install]
+WantedBy=multi-user.target
