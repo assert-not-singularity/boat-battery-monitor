@@ -60,7 +60,7 @@ namespace BatMon
                 float voltageCh0 = rawValue / 4096f * VoltageReference;
                 float voltageBatt = voltageCh0 * (R1 + R2) / R2;
 
-                Console.WriteLine($"raw: {rawValue}, value: {voltageCh0.ToString("f4")} V, calc: {voltageBatt.ToString("f3")} V");
+                _logger.LogInformation($"raw: {rawValue}, value: {voltageCh0.ToString("f4")} V, calc: {voltageBatt.ToString("f3")} V");
             }
             catch (System.IO.IOException ex)
             {

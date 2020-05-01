@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace BatMon
 {
@@ -11,27 +11,23 @@ namespace BatMon
         static async Task Main(string[] args)
         {
             IHost host = new HostBuilder()
-                .ConfigureHostConfiguration(configHost =>
+                .ConfigureHostConfiguration(hostConfig =>
                 {
-                    configHost.AddCommandLine(args);
+                    hostConfig.AddCommandLine(args);
                 })
-                .ConfigureAppConfiguration((hostContext, configApp) =>
+                .ConfigureAppConfiguration((hostContext, appConfig) =>
                 {
-                    configApp.SetBasePath(hostContext.HostingEnvironment.ContentRootPath);
-                    configApp.AddJsonFile("appsettings.json", optional: false);
+                    appConfig.SetBasePath(hostContext.HostingEnvironment.ContentRootPath);
+                    appConfig.AddJsonFile("appsettings.json", optional: false);
                 })
-                .ConfigureLogging((hostContext, configLogging) =>
+                .ConfigureLogging((hostContext, loggingConfig) =>
                 {
-                    configLogging.AddSerilog(
-                        new LoggerConfiguration()
-                            .ReadFrom.Configuration(hostContext.Configuration)
-                            .CreateLogger(),
-                        dispose: true);
+                    loggingConfig.AddConsole();
                 })
-                .ConfigureServices((hostContext, services) =>
+                .ConfigureServices((hostContext, servicesConfig) =>
                 {
-                    services.AddHostedService<BackgroundService>();
-                    services.AddSingleton<IConfiguration>(hostContext.Configuration);
+                    servicesConfig.AddHostedService<BackgroundService>();
+                    servicesConfig.AddSingleton<IConfiguration>(hostContext.Configuration);
                 })
                 .Build();
 
