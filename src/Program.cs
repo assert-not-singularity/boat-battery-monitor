@@ -19,6 +19,7 @@ namespace BatMon
                 {
                     appConfig.SetBasePath(hostContext.HostingEnvironment.ContentRootPath);
                     appConfig.AddJsonFile("appsettings.json", optional: false);
+                    appConfig.AddJsonFile("secrets.json", optional: true);
                 })
                 .ConfigureLogging((hostContext, loggingConfig) =>
                 {

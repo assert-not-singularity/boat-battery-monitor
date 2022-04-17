@@ -12,6 +12,7 @@ namespace BatMon
         private readonly ILogger _logger;
         private readonly IHostApplicationLifetime _appLifetime;
 
+        private IDataLogger _dataLogger;
         private SensorReader _sensorReader;
 
         public BackgroundService(IConfiguration configuration, ILogger<BackgroundService> logger,
@@ -38,7 +39,16 @@ namespace BatMon
 
         private void Init()
         {
+            var dataLoggerName = _configuration.GetValue("DataLogger", "");
+            _dataLogger = dataLoggerName switch
+            {
+                "CSV" => _dataLogger = new CsvDataLogger(_configuration, _logger),
+                "Influx" => _dataLogger = new InfluxDataLogger(_configuration, _logger),
+                _ => _dataLogger = new MockDataLogger()
+            };
+
             _sensorReader = new SensorReader(_configuration, _logger, 200);
+            _sensorReader.OnValuesRead += (sender, e) => _dataLogger.WriteValues(e.Voltage, e.Current);
         }
 
         private void OnStarted()
