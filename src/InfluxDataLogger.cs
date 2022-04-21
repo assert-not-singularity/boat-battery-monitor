@@ -1,7 +1,6 @@
 using System;
 using InfluxDB.Client;
 using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -16,6 +15,7 @@ namespace BatMon
         private ILogger _logger;
 
         private readonly InfluxDBClient _client;
+        private readonly WriteApi _writeApi;
 
         public InfluxDataLogger(IConfiguration configuration, ILogger logger)
         {
@@ -28,21 +28,25 @@ namespace BatMon
             var pass = _configuration.GetValue<string>("Password");
 
             _client = InfluxDBClientFactory.CreateV1("http://diskstation.local:8086", user, pass.ToCharArray(), database, retentionPolicy);
+            _writeApi = _client.GetWriteApi();
         }
 
         public void WriteValues(float voltage, float current)
         {
-            using (var writeApi = _client.GetWriteApi())
+            var measurement = new BatteryState
             {
-                var measurement = new BatteryState
-                {
-                    Voltage = voltage,
-                    Current = current,
-                    Time = DateTime.Now
-                };
+                Voltage = voltage,
+                Current = current,
+                Time = DateTime.Now
+            };
 
-                writeApi.WriteMeasurement<BatteryState>(WritePrecision.Ms, measurement);
-            }
+            _writeApi.WriteMeasurement<BatteryState>(WritePrecision.Ms, measurement);
+        }
+
+        public void Dispose()
+        {
+            _writeApi.Dispose();
+            _client.Dispose();
         }
     }
 }

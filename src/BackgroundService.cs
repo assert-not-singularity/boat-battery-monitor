@@ -62,6 +62,7 @@ namespace BatMon
         {
             _logger.LogInformation("Service stopping...");
 
+            _dataLogger.Dispose();
             _sensorReader.Dispose();
         }
 

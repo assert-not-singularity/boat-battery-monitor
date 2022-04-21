@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BatMon;
 
-public class CsvDataLogger : IDataLogger, IDisposable
+public class CsvDataLogger : IDataLogger
 {
     private IConfiguration _configuration;
     private ILogger _logger;

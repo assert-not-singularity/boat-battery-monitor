@@ -5,4 +5,8 @@ public class MockDataLogger : IDataLogger
     public void WriteValues(float voltage, float current)
     {
     }
+
+    public void Dispose()
+    {
+    }
 }
