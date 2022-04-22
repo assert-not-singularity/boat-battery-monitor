@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BatMon
 {
-    public class InfluxDataLogger : IDataLogger
+    public class InfluxDataLogger : DataLogger
     {
         private const string database = "tests";
         private const string retentionPolicy = "autogen";
@@ -17,7 +17,7 @@ namespace BatMon
         private readonly InfluxDBClient _client;
         private readonly WriteApi _writeApi;
 
-        public InfluxDataLogger(IConfiguration configuration, ILogger logger)
+        public InfluxDataLogger(IConfiguration configuration, ILogger logger, SensorReader sensorReader) : base(configuration, logger, sensorReader)
         {
             _configuration = configuration.GetSection("InfluxDB");
             _logger = logger;
@@ -31,7 +31,7 @@ namespace BatMon
             _writeApi = _client.GetWriteApi();
         }
 
-        public void WriteValues(float voltage, float current)
+        public override void WriteValues(float voltage, float current)
         {
             var measurement = new BatteryState
             {
@@ -43,7 +43,7 @@ namespace BatMon
             _writeApi.WriteMeasurement<BatteryState>(WritePrecision.Ms, measurement);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _writeApi.Dispose();
             _client.Dispose();

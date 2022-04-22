@@ -36,11 +36,13 @@ namespace BatMon
         private Mcp3204 _mcp;
         private Timer _timer;
 
-        public SensorReader(IConfiguration configuration, ILogger logger, int intervalMs)
+        public SensorReader(IConfiguration configuration, ILogger logger)
         {
             _configuration = configuration.GetSection("SensorReader");
             _logger = logger;
 
+
+            // Set up measurement circuit
             R1 = _configuration.GetValue("Resistance1", R1);
             R2 = _configuration.GetValue("Resistance2", R2);
             R3 = _configuration.GetValue("Resistance3", R3);
@@ -49,28 +51,37 @@ namespace BatMon
             VoltageOffset = _configuration.GetValue("VoltageOffset", VoltageOffset);
             ReferenceVoltage = _configuration.GetValue("ReferenceVoltage", ReferenceVoltage);
 
+            _logger.LogInformation($"Initialized sensor reader with R1 = {R1} Ω, R2 = {R2} Ω, R3 = {R3} Ω, R4 = {R4} Ω " +
+                $"VoltageOffset = {VoltageOffset} V, CurrentSensorOffset = {CurrentSensorVoltageOffset} V, Vref = {ReferenceVoltage} V.");
+
+
+            // Set up circle buffers
             _samples = _configuration.GetValue("RollingAverageSamples", 1);
             _samples = _samples <= 0 ? 1 : _samples; // Turn off (= set to 1 sample) if 0 or negative
 
             _currents = new Queue<float>();
             _voltages = new Queue<float>();
 
-            _logger.LogInformation($"Initialized sensor reader with R1 = {R1} Ω, R2 = {R2} Ω, R3 = {R3} Ω, R4 = {R4} Ω " +
-                $"VoltageOffset = {VoltageOffset} V, CurrentSensorOffset = {CurrentSensorVoltageOffset} V, Vref = {ReferenceVoltage} V.");
 
+            // Initialize SPI connection to ADC
             var spiSettings = new SpiConnectionSettings(0, 0)
             {
-                ClockFrequency = _configuration.GetValue<int>("ClockFrequency")
+                ClockFrequency = 10000 // Minimum required clock speed for MCP3204
             };
 
             _spi = SpiDevice.Create(spiSettings);
             _mcp = new Mcp3204(_spi);
 
+
+            // Create sampling timer
+            var sampleFrequencyHz = _configuration.GetValue("SampleFrequencyHz", 10);
+            var sampleIntervalMs = Math.Round(1000f / sampleFrequencyHz);
+
             _timer = new Timer()
             {
                 AutoReset = true,
                 Enabled = true,
-                Interval = intervalMs
+                Interval = sampleIntervalMs
             };
 
             _timer.Elapsed += TimerElapsed;

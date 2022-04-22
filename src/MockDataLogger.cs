@@ -1,12 +1,19 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
 namespace BatMon;
 
-public class MockDataLogger : IDataLogger
+public class MockDataLogger : DataLogger
 {
-    public void WriteValues(float voltage, float current)
+    public MockDataLogger(IConfiguration configuration, ILogger logger, SensorReader sensorReader) : base(configuration, logger, sensorReader)
     {
     }
 
-    public void Dispose()
+    public override void WriteValues(float voltage, float current)
+    {
+    }
+
+    public override void Dispose()
     {
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BatMon;
 
-public class CsvDataLogger : IDataLogger
+public class CsvDataLogger : DataLogger
 {
     private IConfiguration _configuration;
     private ILogger _logger;
@@ -16,7 +16,7 @@ public class CsvDataLogger : IDataLogger
     private StreamWriter? _writer;
     private CsvWriter? _csv;
 
-    public CsvDataLogger(IConfiguration configuration, ILogger logger)
+    public CsvDataLogger(IConfiguration configuration, ILogger logger, SensorReader sensorReader) : base(configuration, logger, sensorReader)
     {
         _configuration = configuration.GetSection("CSV");
         _logger = logger;
@@ -61,7 +61,7 @@ public class CsvDataLogger : IDataLogger
         }
     }
 
-    public void WriteValues(float voltage, float current)
+    public override void WriteValues(float voltage, float current)
     {
         if (_csv is null)
         {
@@ -80,7 +80,7 @@ public class CsvDataLogger : IDataLogger
         _csv.Flush();
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         _csv?.Dispose();
         _writer?.Dispose();
